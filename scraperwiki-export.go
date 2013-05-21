@@ -18,6 +18,7 @@ func init() {
 
 }
 
+// Checks if the foldername provided exists, and if not then attempts to create it
 func check_folder(folder string) {
 	if _, err := os.Stat(folder); err != nil {
 		if os.IsNotExist(err) {

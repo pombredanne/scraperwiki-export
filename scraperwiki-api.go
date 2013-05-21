@@ -15,6 +15,7 @@ type Scrapers struct {
 	Owner  []string
 	Editor []string
 }
+
 type InfoDict struct {
 	Username    string
 	ProfileName string
@@ -26,6 +27,8 @@ type UserInfoList struct {
 	Information []InfoDict
 }
 
+// Retrieves information about the user, most notably a list of scraper names that
+// they are either the owner or editors of.  These will be used to fetch the code+data
 func getInfo(username string) (InfoDict, error) {
 	address := fmt.Sprintf("https://api.scraperwiki.com/api/1.0/scraper/getuserinfo?format=jsondict&username=%s", username)
 	cresp, err := http.Get(address)
@@ -48,6 +51,10 @@ func getInfo(username string) (InfoDict, error) {
 	return items[0], nil
 }
 
+// Attempts to retrieve the database (if one exists) for the provided scraper
+// downloading to a folder named after that scraper.  It won't fetch anything
+// when SW says the file is empty, we already have a file with the same name
+// and exact size or it fails.
 func getDB(name string, output_folder string) error {
 
 	address := fmt.Sprintf("https://scraperwiki.com/scrapers/export_sqlite/%s/", name)
@@ -64,7 +71,7 @@ func getDB(name string, output_folder string) error {
 
 	output_file := path.Join(output_folder, name+".sqlite")
 
-	// Check if the file already exists and how large it is 
+	// Check if the file already exists and how large it is
 	st, err := os.Stat(output_file)
 	if err == nil {
 		if st.Size() == length {
@@ -87,8 +94,13 @@ func getDB(name string, output_folder string) error {
 	return err
 }
 
+// When provided with a scraper name, and an output folder this function makes
+// a call to the ScraperWiki API to find information about the scraper.  It only
+// uses the language and code sections of the response, but will then write out
+// the code with the right extension to scraper_name/scraper_name.EXT where .EXT
+// is determined by the language
 func getCode(name string, output_folder string) error {
-	address := fmt.Sprintf("https://api.scraperwiki.com/api/1.0/scraper/getinfo?format=jsondict&name=%s&version=-1&quietfields=attachable_here%7Cattachables%7Ctags%7Clast_run%7chistory%7Cdatasummary%7Cuserroles%7Crunevents%7Clast_run", name)
+	address := "https://api.scraperwiki.com/api/1.0/scraper/getinfo?format=jsondict&version=-1&quietfields=attachable_here%7Cattachables%7Ctags%7Clast_run%7chistory%7Cdatasummary%7Cuserroles%7Crunevents%7Clast_run&name=" + name
 
 	resp, err := http.Get(address)
 	if err != nil {
