@@ -95,10 +95,7 @@ func getDB(name string, output_folder string) error {
 			fmt.Println("  Skipping download, already have data")
 			return nil
 		}
-	} else {
-		fmt.Printf("%v\n", err)
 	}
-	fmt.Printf("File should be %v", length)
 
 	f, err := os.Create(output_file)
 	if err != nil {
