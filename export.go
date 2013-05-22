@@ -30,18 +30,35 @@ func check_folder(folder string) {
 	}
 }
 
+func process_scraper(name string) {
+	fmt.Printf("+ %s\n", name)
+
+	folder := path.Join(output_folder, name)
+	check_folder(folder)
+
+	if err := getCode(name, folder); err != nil {
+		fmt.Println("  - Failed to get code:", err)
+		return
+	}
+
+	if err := getDB(name, folder); err != nil {
+		fmt.Println("  - Failed to get database:", err)
+		return
+	}
+}
+
 func main() {
 	var missing_args bool = false
 
 	flag.Parse()
 
 	if username == "" {
-		fmt.Println("You must specify a username")
+		fmt.Println("-- You must specify a username")
 		missing_args = true
 	}
 
 	if output_folder == "" {
-		fmt.Println("You must specify an output folder")
+		fmt.Println("-- You must specify an output folder")
 		missing_args = true
 	}
 
@@ -59,23 +76,16 @@ func main() {
 		return
 	}
 
+	if single != "" {
+		process_scraper(single)
+		return
+	}
+
 	for role := range info.CodeRoles {
 		fmt.Printf("Processing scrapers where the user is the %s\n", role)
 		for p := range info.CodeRoles[role] {
 			scraper_name := info.CodeRoles[role][p]
-			fmt.Printf(" + %s\n", scraper_name)
-
-			folder := path.Join(output_folder, scraper_name)
-			check_folder(folder)
-
-			if err := getCode(scraper_name, folder); err != nil {
-				fmt.Println("    - Failed to get code:", err)
-			}
-
-			if err := getDB(scraper_name, folder); err != nil {
-				fmt.Println("    - Failed to get database:", err)
-			}
-
+			process_scraper(scraper_name)
 		}
 	}
 }

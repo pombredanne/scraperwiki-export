@@ -51,6 +51,24 @@ func getInfo(username string) (InfoDict, error) {
 	return items[0], nil
 }
 
+func copy_db(reader io.Reader, writer io.Writer, length int64) (int64, error) {
+	var read int64
+	var p float32
+	for {
+		buffer := make([]byte, 2097152)
+		cBytes, err := reader.Read(buffer)
+		if err == io.EOF {
+			break
+		}
+		read = read + int64(cBytes)
+		p = float32(read) / float32(length) * 100
+		fmt.Printf("\r  progress: %3.2f                ", p)
+		writer.Write(buffer[0:cBytes])
+	}
+	fmt.Printf("\r\n")
+	return read, nil
+}
+
 // Attempts to retrieve the database (if one exists) for the provided scraper
 // downloading to a folder named after that scraper.  It won't fetch anything
 // when SW says the file is empty, we already have a file with the same name
@@ -60,12 +78,11 @@ func getDB(name string, output_folder string) error {
 	address := fmt.Sprintf("https://scraperwiki.com/scrapers/export_sqlite/%s/", name)
 
 	resp, err := http.Head(address)
-	fmt.Printf("    File is reportedly %s bytes\n", resp.Header.Get("Content-Length"))
 	defer resp.Body.Close()
 
 	length, _ := strconv.ParseInt(resp.Header.Get("Content-Length"), 10, 0)
 	if length == 0 {
-		fmt.Println("    Skipping download, no data")
+		fmt.Println("  Skipping download, no data")
 		return nil
 	}
 
@@ -75,10 +92,13 @@ func getDB(name string, output_folder string) error {
 	st, err := os.Stat(output_file)
 	if err == nil {
 		if st.Size() == length {
-			fmt.Println("      Skipping download, already have data")
+			fmt.Println("  Skipping download, already have data")
 			return nil
 		}
+	} else {
+		fmt.Printf("%v\n", err)
 	}
+	fmt.Printf("File should be %v", length)
 
 	f, err := os.Create(output_file)
 	if err != nil {
@@ -89,8 +109,8 @@ func getDB(name string, output_folder string) error {
 	cresp, err := http.Get(address)
 	defer cresp.Body.Close()
 
-	n, err := io.Copy(f, cresp.Body)
-	fmt.Printf("     Wrote %d bytes\n", n)
+	_, err = copy_db(cresp.Body, f, length)
+	fmt.Println("  Wrote DB to " + output_file)
 	return err
 }
 
@@ -111,7 +131,7 @@ func getCode(name string, output_folder string) error {
 	var items []map[string]interface{}
 	dec := json.NewDecoder(resp.Body)
 	if err := dec.Decode(&items); err != nil {
-		return err
+		return errors.New("Failed to retrieve info for that scraper, does it exist?")
 	}
 
 	languages := map[string]string{
@@ -123,7 +143,7 @@ func getCode(name string, output_folder string) error {
 
 	code := fmt.Sprintf("%v", items[0]["code"])
 	if len(code) == 0 {
-		fmt.Println("      Skipping writing code as there is none")
+		fmt.Println("  Skipping writing code as there is none")
 		return nil
 	}
 
@@ -139,6 +159,6 @@ func getCode(name string, output_folder string) error {
 	if err != nil {
 		panic("Failed to write code to file")
 	}
-	fmt.Printf("      Wrote %d bytes of code to %s\n", l, output_file)
+	fmt.Printf("  Code is %d bytes in size : %s\n", l, output_file)
 	return nil
 }
