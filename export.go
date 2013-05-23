@@ -116,7 +116,7 @@ func main() {
 		return
 	}
 
-	fmt.Println("Checking the username:", username)
+	fmt.Println("Getting user details for:", username)
 	info, err := getInfo(username)
 	if err != nil {
 		fmt.Println(err)
@@ -124,7 +124,7 @@ func main() {
 	}
 
 	for role := range info.CodeRoles {
-		fmt.Printf("Processing scrapers where the user is the %s\n", role)
+		fmt.Printf("Processing %s scrapers\n", role)
 		for p := range info.CodeRoles[role] {
 			scraper_name := info.CodeRoles[role][p]
 			process_scraper(scraper_name)

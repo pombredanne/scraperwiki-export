@@ -87,7 +87,7 @@ func getDB(name string, output_folder string) error {
 		return nil
 	}
 
-	output_file := path.Join(output_folder, name+".sqlite")
+	output_file := path.Join(output_folder, "scraperwiki.sqlite")
 
 	// Check if the file already exists and how large it is
 	st, err := os.Stat(output_file)
@@ -146,7 +146,7 @@ func getCode(name string, output_folder string) error {
 	}
 
 	language := fmt.Sprintf("%v", items[0]["language"])
-	output_file := path.Join(output_folder, name+languages[language])
+	output_file := path.Join(output_folder, "code"+languages[language])
 	f, err := os.Create(output_file)
 	if err != nil {
 		panic(err)
