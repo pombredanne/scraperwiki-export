@@ -31,6 +31,7 @@ type UserInfoList struct {
 // they are either the owner or editors of.  These will be used to fetch the code+data
 func getInfo(username string) (InfoDict, error) {
 	address := fmt.Sprintf("https://api.scraperwiki.com/api/1.0/scraper/getuserinfo?format=jsondict&username=%s", username)
+
 	cresp, err := http.Get(address)
 	if err != nil {
 		return InfoDict{}, err
