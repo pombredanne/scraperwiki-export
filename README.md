@@ -16,9 +16,9 @@ If you don't have the go compiler installed, you'll need to wait for a binary.
 
 ## Still to-do
 
- * --Progress info--
- * --Fetch a couple at a time--
- * ==See if SW supports range for re-starts==
+ * ~~Progress info~~
+ * ~~Fetch a couple at a time~~
+ * ~~See if SW supports range for re-starts~~
  * Implement fetching a substring match of the name
  * Better error checking
- * --See if we can get private scrapers--
+ * ~~See if we can get private scrapers~~
